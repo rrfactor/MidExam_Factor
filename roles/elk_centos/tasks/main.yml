@@ -1,0 +1,166 @@
+#ELK Dependencies <Start>
+- name: Install ELK Dependencies (CentOs)
+  yum:
+    name:
+      - java-11-openjdk
+      - curl
+      - gnupg 
+      - dirmngr
+    state: latest
+#ELK Dependencies <END>
+
+#Elasticsearch Installation <START>
+- name: install elasticsearch rpm key
+  rpm_key:
+    key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+  become: true
+
+- name: install elasticsearch 7.x rpm repository
+  yum_repository:
+    name: Elastic_7.X_repo
+    baseurl: https://artifacts.elastic.co/packages/7.x/yum
+    gpgcheck: true
+    gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    description: Elastic 7.X Repo
+  become: true
+
+- name: Install Elasticsearch (CentOs)
+  yum:
+    name: elasticsearch
+    state: latest
+    update_cache: yes
+#Elasticsearch Installation <END>
+
+#Elasticsearch Configuration <Start>
+- name: Configure Elasticsearch change cluster name (CentOs)
+  lineinfile:
+    dest: /etc/elasticsearch/elasticsearch.yml
+    line: "cluster.name: demo-elk"
+    state: present
+
+- name: Configure Elasticsearch give cluster descriptive name (CentOs)
+  lineinfile:
+    dest: /etc/elasticsearch/elasticsearch.yml
+    line: "node.name: elk-1"
+    state: present
+
+- name: Configure Elasticsearch Add network.host (CentOs)
+  lineinfile:
+    dest: /etc/elasticsearch/elasticsearch.yml
+    line: "network.host: 0.0.0.0"
+    state: present
+
+- name: Configure Elasticsearch Add http.port (CentOs)
+  lineinfile:
+    dest: /etc/elasticsearch/elasticsearch.yml
+    line: "http.port: 9200"
+    state: present
+
+- name: Configure Elasticsearch Add discovery.type (CentOs)
+  lineinfile:
+    dest: /etc/elasticsearch/elasticsearch.yml
+    line: "discovery.type: single-node"
+    state: present
+
+- name: Creating an empty file for startup-timeout.conf 1 of 2 (CentOs)
+  file:
+    path: "/etc/systemd/system/elasticsearch.service.d"
+    state: directory
+
+- name: Creating an empty file for startup-timeout.conf 2 of 2 (CentOs)
+  file:
+    path: "/etc/systemd/system/elasticsearch.service.d/startup-timeout.conf"
+    state: touch
+
+- name: Prevent systemd service start operation from timing out (CentOs)
+  copy:
+    dest: "/etc/systemd/system/elasticsearch.service.d/startup-timeout.conf"
+    content: |
+      [Service]
+      TimeoutStartSec=3min
+#Elasticsearch Configuration <END>
+
+#Elasticsearch Enable Services <START>
+- name: Run daemon-reload for elasticsearch (CentOs)
+  systemd: daemon_reload=yes
+
+- name: Enable service Elasticsearch and ensure it is not masked (CentOs)
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    masked: no
+
+- name: ensure elasticsearch is running (CentOs)
+  systemd: state=started name=elasticsearch
+#Elasticsearch Enable Services <END>
+
+#Logstash Installation <START>
+- name: Install Logstash (CentOs)
+  yum:
+    name: logstash
+    state: latest
+    update_cache: yes
+#Logstash Installation <END>
+
+#Logstash Enable Services <START>
+- name: Run daemon-reload for logstash (CentOs)
+  systemd: daemon_reload=yes
+
+- name: Enable service logstash (CentOs)
+  systemd:
+    name: logstash
+    enabled: yes
+
+- name: ensure logstash is running (CentOs)
+  systemd: state=started name=logstash
+#Logstash Enable Services <END>
+
+#Kibana Installation <START>
+- name: Install Kibana (CentOs)
+  yum:
+    name: kibana
+    state: latest
+    update_cache: yes
+#Kibana Installation <END>
+
+#Kibana Configuration <START>
+- name: Configure Kibana Add server.port (CentOs)
+  lineinfile:
+    dest: /etc/kibana/kibana.yml
+    line: "server.port: 5601"
+    state: present
+
+- name: Configure Kibana Add server.host (CentOs)
+  lineinfile:
+    dest: /etc/kibana/kibana.yml
+    line: 'server.host: “0.0.0.0”'
+    state: present
+
+- name: Configure Kibana Add server.name (CentOs)
+  lineinfile:
+    dest: /etc/kibana/kibana.yml
+    line: 'server.name: “demo-kibana”'
+    state: present
+
+- name: Configure Kibana Add elasticsearch.hosts (CentOs)
+  lineinfile:
+    dest: /etc/kibana/kibana.yml
+    line: 'elasticsearch.hosts: [“http://0.0.0.0:9200"]'
+    state: present
+#Kibana Configuration <END>
+
+#Kibana Enable Services <START>
+- name: Run daemon-reload for kibana (CentOs)
+  systemd: daemon_reload=yes
+
+- name: Enable service Kibana (CentOs)
+  systemd:
+    name: kibana
+    enabled: yes
+#Kibana Enable Services <END>
+
+#Start Elasticsearch & Kibana <START>
+- name: Start Elasticsearch & Kibana (CentOs)
+  shell: systemctl start elasticsearch && systemctl start kibana
+#Start Elasticsearch & Kibana <END>

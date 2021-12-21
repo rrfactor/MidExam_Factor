@@ -1,0 +1,9 @@
+---
+- name: Import InfluxDB GPG signing key
+  apt_key: url=https://repos.influxdata.com/influxdb.key state=present
+  
+- name: Install InfluxDB packages
+  apt: name=influxdb state=present
+  
+- name: Start the InfluxDB service
+  service: name=influxdb state=restarted

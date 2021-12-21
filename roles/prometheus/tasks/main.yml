@@ -1,0 +1,27 @@
+---
+- name: update and install prometheus
+  apt:
+    name: prometheus
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+- name: prometheus args
+  template:
+    src: "files/prometheus.j2"
+    dest: "/etc/default/prometheus"
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart_prometheus
+- name: Ensure that /etc/prometheus exists
+  file:
+    state: directory
+    path: /etc/prometheus
+    owner: prometheus
+    group: prometheus
+    mode: 0755
+- name: start prometheus
+  systemd:
+    name: prometheus
+    state: started
+    enabled: yes
