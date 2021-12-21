@@ -1,4 +1,24 @@
----    
+---
+- name: Install Nagios Dependencies
+  apt:
+    name:
+      - autoconf
+      - gcc
+      - libc6
+      - make
+      - wget
+      - unzip
+      - libssl-dev
+      - apache2
+      - php
+      - libapache2-mod-php*
+      - libgd-dev
+      - build-essential
+    state: latest
+    update_cache: yes
+- name: Download and uncompress nagios
+  shell: cd /tmp;rm nagios*.tar.gz;wget -O nagios.tar.gz --no-check-certificate https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.4.5.tar.gz;tar -zxf nagios.tar.gz;mv nagios-4.4.5 nagios
+  
 - name: Start Nagios service
   service:
     name: nagios
