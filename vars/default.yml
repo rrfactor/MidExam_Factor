@@ -1,0 +1,25 @@
+---
+mysql_root_password: "abc123"
+app_user: "rynrssl"
+http_host: "lampexample.com"
+http_conf: "lampexample.com.conf"
+http_port: "80"
+disable_default: true
+
+prometheus_dir_configuration: "/etc/prometheus"
+prometheus_retention_time: "365d"
+prometheus_scrape_interval: "30s"
+prometheus_node_exporter: true
+prometheus_node_exporter_group: "all"
+prometheus_env: "production"
+prometheus_var_config:
+  global:
+    scrape_interval: "{{ prometheus_scrape_interval }}"
+    evaluation_interval: 5s
+    external_labels:
+      env: '{{ prometheus_env }}'
+  scrape_configs:
+    - job_name: prometheus
+      scrape_interval: 5m
+      static_configs:
+        - targets: ['localhost:9090']
